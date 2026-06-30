@@ -10,10 +10,9 @@
 //      Функция: onFormSubmit | Событие: При отправке формы
 // ============================================================
 
-var BITRIX_WEBHOOK = "https://bitrix.ferraraoceanllp.com/rest/653/7bm2v7m6v643x35o/";
+var BITRIX_WEBHOOK = "https://bitrix.ferraraoceanllp.com/rest/45/kpfsu7g1dgfzpojr/";
 
-// ID воронки "Масс найм" — запустите findPipelineId() чтобы узнать
-var CATEGORY_ID = 0; // ← замените на правильный ID
+var CATEGORY_ID = 7;
 
 // Маппинг: ключевое слово из заголовка столбца → русское название для комментария
 var FIELD_MAP = [
