@@ -86,7 +86,10 @@ function onFormSubmit(e) {
     });
     var comment = commentParts.join("\n\n");
 
-    var dealId = createDeal(dealTitle, comment);
+    var dealId = createDeal(dealTitle);
+    if (dealId) {
+      addTimelineComment(dealId, comment);
+    }
     Logger.log("Сделка создана. ID: " + dealId);
 
   } catch (err) {
@@ -117,7 +120,7 @@ function mapFields(responses) {
   return result;
 }
 
-function createDeal(title, comment) {
+function createDeal(title) {
   var url = BITRIX_WEBHOOK + "crm.deal.add.json";
 
   var options = {
@@ -127,8 +130,7 @@ function createDeal(title, comment) {
       fields: {
         TITLE:       title,
         CATEGORY_ID: CATEGORY_ID,
-        OPENED:      "Y",
-        COMMENTS:    comment
+        OPENED:      "Y"
       },
       params: { REGISTER_SONET_EVENT: "Y" }
     }),
@@ -141,6 +143,30 @@ function createDeal(title, comment) {
   if (result.result) return result.result;
   Logger.log("Deal error: " + JSON.stringify(result));
   return null;
+}
+
+function addTimelineComment(dealId, comment) {
+  var url = BITRIX_WEBHOOK + "crm.timeline.comment.add.json";
+
+  var options = {
+    method: "post",
+    contentType: "application/json",
+    payload: JSON.stringify({
+      fields: {
+        ENTITY_ID:   dealId,
+        ENTITY_TYPE: "deal",
+        COMMENT:     comment
+      }
+    }),
+    muteHttpExceptions: true
+  };
+
+  var response = UrlFetchApp.fetch(url, options);
+  var result = JSON.parse(response.getContentText());
+
+  if (!result.result) {
+    Logger.log("Timeline comment error: " + JSON.stringify(result));
+  }
 }
 
 // ============================================================
@@ -195,6 +221,8 @@ function testIntegration() {
     if (mapped[label]) commentParts.push(label + "\n" + mapped[label]);
   });
 
-  var dealId = createDeal("Operator - " + geo + " [TEST]", commentParts.join("\n\n"));
+  var comment = commentParts.join("\n\n");
+  var dealId = createDeal("Operator - " + geo + " [TEST]");
+  if (dealId) addTimelineComment(dealId, comment);
   Logger.log("Test Deal ID: " + dealId);
 }
