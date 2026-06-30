@@ -65,12 +65,24 @@ function onFormSubmit(e) {
     var geo = mapped["ГЕО"] || "";
     var dealTitle = "Operator" + (geo ? " - " + geo : "");
 
-    // Комментарий из нормализованных русских названий
+    // Комментарий из нормализованных русских названий + перевод ответов
     var commentParts = [];
+    // ФИО и контакты не переводим — имена и номера телефонов переводить не нужно
+    var NO_TRANSLATE = ["ФИО кандидата", "Контактные данные", "Реферер (ФИО)", "ГЕО"];
     var ORDER = ["ФИО кандидата", "Возраст кандидата", "Контактные данные",
                  "Опыт работы кандидата", "Текущая занятость", "Реферер (ФИО)", "ГЕО"];
     ORDER.forEach(function(label) {
-      if (mapped[label]) commentParts.push(label + "\n" + mapped[label]);
+      if (!mapped[label]) return;
+      var val = mapped[label];
+      if (NO_TRANSLATE.indexOf(label) === -1) {
+        try {
+          var translated = LanguageApp.translate(val, "", "ru");
+          if (translated && translated !== val) val = translated;
+        } catch (te) {
+          Logger.log("Перевод не удался для '" + label + "': " + te);
+        }
+      }
+      commentParts.push(label + "\n" + val);
     });
     var comment = commentParts.join("\n\n");
 
