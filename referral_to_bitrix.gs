@@ -15,52 +15,94 @@ var BITRIX_WEBHOOK = "https://bitrix.ferraraoceanllp.com/rest/653/7bm2v7m6v643x3
 // ID воронки "Масс найм" — запустите findPipelineId() чтобы узнать
 var CATEGORY_ID = 0; // ← замените на правильный ID
 
-// Ключевые слова для определения столбца с ГЕО (многоязычная форма)
-var GEO_KEYWORDS = ["za koji geo", "für welches geo", "millisele geo", "pe ce geo",
-                    "do kterého geo", "į kurį geo", "uz kuru geo", "melyik geo",
-                    "за кое geo", "geo preporučujete", "que geo", "за какое geo",
-                    "рекомендуете кандидата"];
+// Маппинг: ключевое слово из заголовка столбца → русское название для комментария
+var FIELD_MAP = [
+  { keywords: ["ime i prezime", "vor- und nachnamen", "ees- ja perekon", "numele și prenu",
+               "jméno a příjmení", "vardą ir pavardę", "vārdu un uzvārdu", "kereszt- és vezet",
+               "ime и фамилия", "имя и фамилию", "nombre y apellido", "укажите имя и фамилию",
+               "napišite ime"],
+    label: "ФИО кандидата" },
+
+  { keywords: ["dob kandidata", "alter des kand", "kandidaadi vanus", "vârsta candidat",
+               "věk kandidáta", "kandidato amžius", "kandidāta vecums", "jelölt életkora",
+               "възраст на канд", "возраст канд", "edad del candidato"],
+    label: "Возраст кандидата" },
+
+  { keywords: ["kontaktni podaci", "kontaktdaten zur", "kontaktandmed", "date de contact",
+               "kontaktní údaje", "kontaktiniai duom", "kontaktinformācija", "elérhetőségek",
+               "контактни данни", "контактные данные", "datos de contacto"],
+    label: "Контактные данные" },
+
+  { keywords: ["radno iskustvo", "berufserfahrung", "töökogemus", "experiența prof",
+               "pracovní zkušen", "darbo patirtis", "darba pieredze", "munkatapasztalat",
+               "трудов опит", "опыт работы", "experiencia laboral"],
+    label: "Опыт работы кандидата" },
+
+  { keywords: ["trenutni radni", "aktuelle beschäf", "praegune tööhõive", "locul de muncă",
+               "současné zaměst", "dabartinis užimtumas", "pašreizējais nodarbinātības",
+               "jelenlegi munkahely", "настояща заетост", "текущая занятость", "empleo actual"],
+    label: "Текущая занятость" },
+
+  { keywords: ["tvoje prezime", "dein nachname", "sinu perekon", "numele și prenumele tău",
+               "vaše příjmení", "tavo pavardė", "tavs uzvārds", "te vezet", "вашите фамилия",
+               "ваши фамилия", "tu apellido"],
+    label: "Реферер (ФИО)" },
+
+  { keywords: ["za koji geo", "für welches geo", "millisele geo", "pe ce geo",
+               "do kterého geo", "į kurį geo", "uz kuru geo", "melyik geo",
+               "за кое geo", "geo preporučujete", "que geo", "за какое geo",
+               "рекомендуете кандидата"],
+    label: "ГЕО" }
+];
 
 // ============================================================
 
 function onFormSubmit(e) {
   try {
     var responses = e.namedValues;
+    var mapped = mapFields(responses);
 
-    // Найти ГЕО
-    var geo = "";
-    for (var key in responses) {
-      var keyLower = key.toLowerCase();
-      for (var i = 0; i < GEO_KEYWORDS.length; i++) {
-        if (keyLower.indexOf(GEO_KEYWORDS[i].toLowerCase()) !== -1) {
-          var val = (responses[key][0] || "").trim();
-          if (val) { geo = val; break; }
-        }
-      }
-      if (geo) break;
-    }
-
-    // Название сделки
+    var geo = mapped["ГЕО"] || "";
     var dealTitle = "Operator" + (geo ? " - " + geo : "");
 
-    // Комментарий: все вопросы и ответы, пропускаем пустые и служебные
+    // Комментарий из нормализованных русских названий
     var commentParts = [];
-    for (var key in responses) {
-      if (key === "Отметка времени" || key === "Select language") continue;
-      var val = (responses[key][0] || "").trim();
-      if (val) {
-        commentParts.push(key + "\n" + val);
-      }
-    }
+    var ORDER = ["ФИО кандидата", "Возраст кандидата", "Контактные данные",
+                 "Опыт работы кандидата", "Текущая занятость", "Реферер (ФИО)", "ГЕО"];
+    ORDER.forEach(function(label) {
+      if (mapped[label]) commentParts.push(label + "\n" + mapped[label]);
+    });
     var comment = commentParts.join("\n\n");
 
-    // Создаём сделку
     var dealId = createDeal(dealTitle, comment);
     Logger.log("Сделка создана. ID: " + dealId);
 
   } catch (err) {
     Logger.log("Ошибка: " + err.toString());
   }
+}
+
+// Находит заполненные поля и переводит заголовки в русские названия
+function mapFields(responses) {
+  var result = {};
+  for (var key in responses) {
+    var val = (responses[key][0] || "").trim();
+    if (!val) continue;
+    var keyLower = key.toLowerCase();
+    var matched = false;
+    for (var i = 0; i < FIELD_MAP.length; i++) {
+      var entry = FIELD_MAP[i];
+      for (var j = 0; j < entry.keywords.length; j++) {
+        if (keyLower.indexOf(entry.keywords[j].toLowerCase()) !== -1) {
+          result[entry.label] = val;
+          matched = true;
+          break;
+        }
+      }
+      if (matched) break;
+    }
+  }
+  return result;
 }
 
 function createDeal(title, comment) {
@@ -117,28 +159,30 @@ function findPipelineId() {
 // Тест без реальной отправки формы
 // ============================================================
 function testIntegration() {
+  // Симулируем ответ на венгерском языке
   var fakeResponses = {
-    "Отметка времени":          ["30.06.2026 12:00:00"],
-    "Select language":           ["RU"],
-    "Укажите имя и фамилию друга, который хочет работать в нашей компании": ["Ivan Petrov"],
-    "Возраст кандидата":        ["28"],
-    "Контактные данные для связи (e-mail, телефон, аккаунт в соцсетях)": ["@ivan_tg, +34 600 123 456"],
-    "Рабочий опыт кандидата":   ["3 года в продажах"],
-    "Текущая занятость (если известно)": ["Безработный"],
-    "Ваши Фамилия и Имя":       ["Maria Gonzalez"],
-    "За какое GEO рекомендуете кандидата?": ["Испания"]
+    "Отметка времени": ["30.06.2026 12:00:00"],
+    "Select language":  ["HU"],
+    "Kérjük, adja meg egy olyan barátja kereszt- és vezetéknevét, aki szeretne nálunk dolgozni": ["Ivan Petrov"],
+    "A jelölt életkora": ["28"],
+    "Elérhetőségek a kommunikációhoz (e-mail, telefon, közösségi média fiók)": ["@ivan_tg, +36 30 123 4567"],
+    "A jelölt munkatapasztalata": ["3 év értékesítés"],
+    "Jelenlegi munkahely (ha ismert)": ["Munkanélküli"],
+    "A te vezetékneved és keresztneved.": ["Maria Gonzalez"],
+    "  Melyik GEO-ba ajánlja a jelöltet?  ": ["Венгрия"]
   };
 
-  var dealId = createDeal("Operator - Испания [TEST]", buildComment(fakeResponses));
-  Logger.log("Test Deal ID: " + dealId);
-}
+  var mapped = mapFields(fakeResponses);
+  Logger.log("Mapped fields: " + JSON.stringify(mapped));
 
-function buildComment(responses) {
-  var parts = [];
-  for (var key in responses) {
-    if (key === "Отметка времени" || key === "Select language") continue;
-    var val = (responses[key][0] || "").trim();
-    if (val) parts.push(key + "\n" + val);
-  }
-  return parts.join("\n\n");
+  var geo = mapped["ГЕО"] || "";
+  var ORDER = ["ФИО кандидата", "Возраст кандидата", "Контактные данные",
+               "Опыт работы кандидата", "Текущая занятость", "Реферер (ФИО)", "ГЕО"];
+  var commentParts = [];
+  ORDER.forEach(function(label) {
+    if (mapped[label]) commentParts.push(label + "\n" + mapped[label]);
+  });
+
+  var dealId = createDeal("Operator - " + geo + " [TEST]", commentParts.join("\n\n"));
+  Logger.log("Test Deal ID: " + dealId);
 }
