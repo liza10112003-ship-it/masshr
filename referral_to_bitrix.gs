@@ -18,10 +18,18 @@ var SOURCE_REFERRAL_ID  = "3039";
 
 // Маппинг: ключевое слово из заголовка столбца → русское название для комментария
 var FIELD_MAP = [
-  { keywords: ["ime i prezime", "vor- und nachnamen", "ees- ja perekon", "numele și prenu",
-               "jméno a příjmení", "vardą ir pavardę", "vārdu un uzvārdu", "kereszt- és vezet",
-               "ime и фамилия", "имя и фамилию", "nombre y apellido", "укажите имя и фамилию",
-               "napišite ime"],
+  // Уникальные слова из вопроса про кандидата (слово "друг" на каждом языке)
+  { keywords: ["prijatelja",    // HR — друга
+               "freundes",      // DE — друга
+               "sõbra",         // ET — друга
+               "unui prieten",  // RO — друга
+               "kamaráda",      // CZ — друга
+               "draugo",        // LI — друга
+               "drauga",        // LA — друга
+               "barátja",       // HU — друга
+               "приятел",       // BG — друга
+               "друга",         // RU — друга
+               "amigo"],        // ES — друга
     label: "ФИО кандидата" },
 
   { keywords: ["dob kandidata", "alter des kand", "kandidaadi vanus", "vârsta candidat",
@@ -99,9 +107,9 @@ var GEO_TRANSLATIONS = {
   "spanyolország": "Spain", "magyarország": "Hungary", "litvánia": "Lithuania",
   "lettország": "Latvia", "észtország": "Estonia", "portugália": "Portugal",
   "lengyelország": "Poland",
-  // BG
+  // BG (кириллица совпадает с RU для: испания, литва, латвия, португалия — уже покрыты выше)
   "румъния": "Romania", "чехия / словакия": "Czech Republic", "българия": "Bulgaria",
-  "унгария": "Hungary", "естония": "Estonia", "португалия": "Portugal", "полша": "Poland"
+  "унгария": "Hungary", "естония": "Estonia", "полша": "Poland"
 };
 
 // ============================================================
@@ -112,8 +120,9 @@ function onFormSubmit(e) {
     var mapped    = mapFields(responses);
 
     var fio = mapped["ФИО кандидата"] || "";
-    var geo = mapped["ГЕО"] || "";
-    var dealTitle = "[REFERRAL] " + fio + (geo ? " - " + geo : "");
+    var geo   = mapped["ГЕО"] || "";
+    var geoEn = geo ? (GEO_TRANSLATIONS[geo.toLowerCase().trim()] || geo) : "";
+    var dealTitle = "[REFERRAL] " + fio + (geoEn ? " - " + geoEn : "");
 
     // Перевод ответов на русский
     var NO_TRANSLATE = ["ФИО кандидата", "Контактные данные", "Реферер (ФИО)", "ГЕО"];
@@ -133,8 +142,8 @@ function onFormSubmit(e) {
     });
     var comment = commentParts.join("\n\n");
 
-    // Найти enum ID для ГЕО в Битриксе
-    var geoEnumId = getGeoEnumId(geo);
+    // Найти enum ID для ГЕО в Битриксе (по английскому названию)
+    var geoEnumId = getGeoEnumId(geoEn);
 
     var dealId = createDeal(dealTitle, geoEnumId);
     if (dealId) addTimelineComment(dealId, comment);
@@ -168,19 +177,14 @@ function mapFields(responses) {
   return result;
 }
 
-// Переводит значение ГЕО из формы → enum ID в Битриксе
-function getGeoEnumId(geoValue) {
-  if (!GEO_FIELD_CODE || !geoValue) return null;
-
-  // Переводим в английское название
-  var geoEn = GEO_TRANSLATIONS[geoValue.toLowerCase().trim()] || geoValue;
-
-  // Получаем список значений поля из Битрикса
+// Находит enum ID по английскому названию ГЕО
+function getGeoEnumId(geoEn) {
+  if (!GEO_FIELD_CODE || !geoEn) return null;
   try {
-    var url = BITRIX_WEBHOOK + "crm.deal.fields.json";
+    var url  = BITRIX_WEBHOOK + "crm.deal.fields.json";
     var resp = UrlFetchApp.fetch(url, { method: "get", muteHttpExceptions: true });
     var fields = JSON.parse(resp.getContentText());
-    var field = fields.result && fields.result[GEO_FIELD_CODE];
+    var field  = fields.result && fields.result[GEO_FIELD_CODE];
     if (field && field.items) {
       for (var i = 0; i < field.items.length; i++) {
         if (field.items[i].VALUE.toLowerCase() === geoEn.toLowerCase()) {
@@ -300,6 +304,58 @@ function findDealFields() {
       }
     }
   });
+}
+
+// ============================================================
+// Проверяет маппинг всех ГЕО значений из формы → Битрикс (без создания карточек)
+// ============================================================
+function testAllGeos() {
+  // Все значения ГЕО из дропдауна формы по всем языкам
+  var allGeoValues = [
+    // RU
+    "Румыния","Чехия/Словакия","Болгария","Испания","Венгрия",
+    "Литва","Латвия","Эстония","Португалия","Польша","Италия","Хорватия",
+    // HR
+    "Rumunjska","Češka / Slovačka","Bugarska","Španjolska","Mađarska",
+    "Litva","Latvija","Estonija","Portugal","Poljska","Italija","Hrvatska","Njemačka",
+    // DE
+    "Rumänien","Tschechien / Slowakei","Bulgarien","Spanien","Ungarn",
+    "Litauen","Lettland","Estland","Polen","Italien","Kroatien","Deutschland",
+    // ET
+    "Rumeenia","Tšehhi / Slovakkia","Bulgaaria","Hispaania","Ungari",
+    "Leedu","Läti","Eesti","Poola",
+    // RO
+    "România","Cehia / Slovacia","Bulgaria","Spania","Ungaria",
+    "Lituania","Letonia","Estonia","Portugalia","Polonia",
+    // CZ
+    "Rumunsko","Česko / Slovensko","Bulharsko","Španělsko","Maďarsko",
+    "Lotyšsko","Estonsko","Portugalsko","Polsko",
+    // LI
+    "Rumunija","Čekija / Slovakija","Bulgarija","Ispanija","Vengrija",
+    "Lietuva","Latvija","Estija","Portugalija","Lenkija",
+    // LA
+    "Rumānija","Čehija / Slovākija","Bulgārija","Spānija","Ungārija",
+    "Igaunija","Portugāle","Polija",
+    // HU
+    "Románia","Csehország / Szlovákia","Bulgária","Spanyolország","Magyarország",
+    "Litvánia","Lettország","Észtország","Portugália","Lengyelország",
+    // BG
+    "Румъния","Чехия / Словакия","България","Унгария",
+    "Естония","Португалия","Полша"
+  ];
+
+  var ok = 0, fail = 0;
+  allGeoValues.forEach(function(val) {
+    var en = GEO_TRANSLATIONS[val.toLowerCase().trim()];
+    if (en) {
+      Logger.log("✅ " + val + " → " + en);
+      ok++;
+    } else {
+      Logger.log("❌ НЕТ МАППИНГА: " + val);
+      fail++;
+    }
+  });
+  Logger.log("\nИтого: " + ok + " ОК, " + fail + " не найдено");
 }
 
 // ============================================================
