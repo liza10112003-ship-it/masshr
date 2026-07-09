@@ -145,6 +145,29 @@ function onFormSubmit(e) {
   }
 }
 
+// Находит заполненные поля и переводит заголовки в русские названия
+function mapFields(responses) {
+  var result = {};
+  for (var key in responses) {
+    var val = (responses[key][0] || "").trim();
+    if (!val) continue;
+    var keyLower = key.toLowerCase();
+    var matched = false;
+    for (var i = 0; i < FIELD_MAP.length; i++) {
+      var entry = FIELD_MAP[i];
+      for (var j = 0; j < entry.keywords.length; j++) {
+        if (keyLower.indexOf(entry.keywords[j].toLowerCase()) !== -1) {
+          result[entry.label] = val;
+          matched = true;
+          break;
+        }
+      }
+      if (matched) break;
+    }
+  }
+  return result;
+}
+
 // Переводит значение ГЕО из формы → enum ID в Битриксе
 function getGeoEnumId(geoValue) {
   if (!GEO_FIELD_CODE || !geoValue) return null;
