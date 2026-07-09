@@ -56,47 +56,52 @@ var FIELD_MAP = [
     label: "ГЕО" }
 ];
 
-// Перевод значения ГЕО из формы в английское название для Битрикса
+// Перевод значения ГЕО из формы (точные значения дропдауна) в английское название Битрикса
 var GEO_TRANSLATIONS = {
   // RU
-  "хорватия": "Croatia", "венгрия": "Hungary", "румыния": "Romania",
-  "болгария": "Bulgaria", "испания": "Spain", "португалия": "Portugal",
-  "германия": "Germany", "эстония": "Estonia", "латвия": "Latvia",
-  "литва": "Lithuania", "чехия": "Czech Republic", "словакия": "Slovakia",
-  "словения": "Slovenia", "польша": "Poland", "сербия": "Serbia",
-  "греция": "Greece", "италия": "Italy", "франция": "France",
-  "нидерланды": "Netherlands", "бельгия": "Belgium", "австрия": "Austria",
-  "швейцария": "Switzerland", "швеция": "Sweden", "норвегия": "Norway",
-  "финляндия": "Finland", "дания": "Denmark", "ирландия": "Ireland",
-  "великобритания": "United Kingdom", "украина": "Ukraine", "молдова": "Moldova",
-  "турция": "Turkey", "россия": "Russia",
+  "румыния": "Romania", "чехия/словакия": "Czech Republic", "болгария": "Bulgaria",
+  "испания": "Spain", "венгрия": "Hungary", "литва": "Lithuania",
+  "латвия": "Latvia", "эстония": "Estonia", "португалия": "Portugal",
+  "польша": "Poland", "италия": "Italy", "хорватия": "Croatia",
   // HR
-  "hrvatska": "Croatia", "mađarska": "Hungary", "rumunjska": "Romania",
-  "bugarska": "Bulgaria", "španjolska": "Spain",
-  // HU
-  "horvátország": "Croatia", "magyarország": "Hungary", "románia": "Romania",
-  "bulgária": "Bulgaria", "spanyolország": "Spain",
-  // RO
-  "croația": "Croatia", "ungaria": "Hungary", "românia": "Romania",
-  "bulgaria": "Bulgaria", "spania": "Spain",
-  // BG
-  "хърватия": "Croatia", "унгария": "Hungary", "румъния": "Romania",
-  "българия": "Bulgaria", "испания": "Spain",
+  "rumunjska": "Romania", "češka / slovačka": "Czech Republic", "bugarska": "Bulgaria",
+  "španjolska": "Spain", "mađarska": "Hungary", "litva": "Lithuania",
+  "latvija": "Latvia", "estonija": "Estonia", "portugal": "Portugal",
+  "poljska": "Poland", "italija": "Italy", "hrvatska": "Croatia", "njemačka": "Germany",
   // DE
-  "kroatien": "Croatia", "ungarn": "Hungary", "rumänien": "Romania",
-  "bulgarien": "Bulgaria", "spanien": "Spain", "estland": "Estonia",
-  "lettland": "Latvia", "litauen": "Lithuania",
+  "rumänien": "Romania", "tschechien / slowakei": "Czech Republic", "bulgarien": "Bulgaria",
+  "spanien": "Spain", "ungarn": "Hungary", "litauen": "Lithuania",
+  "lettland": "Latvia", "estland": "Estonia", "polen": "Poland",
+  "italien": "Italy", "kroatien": "Croatia", "deutschland": "Germany",
   // ET
-  "horvaatia": "Croatia", "ungari": "Hungary", "rumeenia": "Romania",
-  // LV
-  "horvātija": "Croatia", "ungārija": "Hungary", "rumānija": "Romania",
-  // LT
-  "kroatija": "Croatia", "vengrija": "Hungary", "rumunija": "Romania",
+  "rumeenia": "Romania", "tšehhi / slovakkia": "Czech Republic", "bulgaaria": "Bulgaria",
+  "hispaania": "Spain", "ungari": "Hungary", "leedu": "Lithuania",
+  "läti": "Latvia", "eesti": "Estonia", "poola": "Poland",
+  // RO
+  "românia": "Romania", "cehia / slovacia": "Czech Republic", "bulgaria": "Bulgaria",
+  "spania": "Spain", "ungaria": "Hungary", "lituania": "Lithuania",
+  "letonia": "Latvia", "estonia": "Estonia", "portugalia": "Portugal",
+  "polonia": "Poland",
   // CZ
-  "chorvatsko": "Croatia", "maďarsko": "Hungary", "rumunsko": "Romania",
-  // ES
-  "croacia": "Croatia", "hungría": "Hungary", "rumanía": "Romania",
-  "bulgaria": "Bulgaria", "españa": "Spain"
+  "rumunsko": "Romania", "česko / slovensko": "Czech Republic", "bulharsko": "Bulgaria",
+  "španělsko": "Spain", "maďarsko": "Hungary", "lotyšsko": "Latvia",
+  "estonsko": "Estonia", "portugalsko": "Portugal", "polsko": "Poland",
+  // LI (Lithuanian)
+  "rumunija": "Romania", "čekija / slovakija": "Czech Republic", "bulgarija": "Bulgaria",
+  "ispanija": "Spain", "vengrija": "Hungary", "lietuva": "Lithuania",
+  "estija": "Estonia", "portugalija": "Portugal", "lenkija": "Poland",
+  // LV (Latvian)
+  "rumānija": "Romania", "čehija / slovākija": "Czech Republic", "bulgārija": "Bulgaria",
+  "spānija": "Spain", "ungārija": "Hungary", "igaunija": "Estonia",
+  "portugāle": "Portugal", "polija": "Poland",
+  // HU
+  "románia": "Romania", "csehország / szlovákia": "Czech Republic", "bulgária": "Bulgaria",
+  "spanyolország": "Spain", "magyarország": "Hungary", "litvánia": "Lithuania",
+  "lettország": "Latvia", "észtország": "Estonia", "portugália": "Portugal",
+  "lengyelország": "Poland",
+  // BG
+  "румъния": "Romania", "чехия / словакия": "Czech Republic", "българия": "Bulgaria",
+  "унгария": "Hungary", "естония": "Estonia", "португалия": "Portugal", "полша": "Poland"
 };
 
 // ============================================================
