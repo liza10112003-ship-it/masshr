@@ -12,9 +12,9 @@
 var BITRIX_WEBHOOK = "https://bitrix.ferraraoceanllp.com/rest/45/kpfsu7g1dgfzpojr/";
 var CATEGORY_ID    = 7;
 
-// ← Заполните после запуска findDealFields()
-var GEO_FIELD_CODE      = "";  // например "UF_CRM_12345678"
-var SOURCE_REFERRAL_ID  = "";  // например "14" — ID значения "реферальная программа"
+var GEO_FIELD_CODE      = "UF_CRM_1769653536652";
+var SOURCE_FIELD_CODE   = "";  // ← заполните после запуска findSourceField()
+var SOURCE_REFERRAL_ID  = "";  // ← заполните после запуска findSourceField()
 
 // Маппинг: ключевое слово из заголовка столбца → русское название для комментария
 var FIELD_MAP = [
@@ -172,12 +172,15 @@ function createDeal(title, geoEnumId) {
   var fields = {
     TITLE:       title,
     CATEGORY_ID: CATEGORY_ID,
-    OPENED:      "Y",
-    SOURCE_ID:   SOURCE_REFERRAL_ID || undefined
+    OPENED:      "Y"
   };
 
   if (GEO_FIELD_CODE && geoEnumId) {
     fields[GEO_FIELD_CODE] = geoEnumId;
+  }
+
+  if (SOURCE_FIELD_CODE && SOURCE_REFERRAL_ID) {
+    fields[SOURCE_FIELD_CODE] = SOURCE_REFERRAL_ID;
   }
 
   var options = {
@@ -207,6 +210,33 @@ function addTimelineComment(dealId, comment) {
   };
   var result = JSON.parse(UrlFetchApp.fetch(url, options).getContentText());
   if (!result.result) Logger.log("Comment error: " + JSON.stringify(result));
+}
+
+// ============================================================
+// Запустите один раз → найдёт поле Источник и ID "реферальная программа"
+// ============================================================
+function findSourceField() {
+  var url  = BITRIX_WEBHOOK + "crm.deal.fields.json";
+  var resp = UrlFetchApp.fetch(url, { method: "get", muteHttpExceptions: true });
+  var data = JSON.parse(resp.getContentText());
+
+  if (!data.result) { Logger.log("Ошибка: " + JSON.stringify(data)); return; }
+
+  var fields = data.result;
+  var found  = false;
+
+  Object.keys(fields).forEach(function(code) {
+    var f = fields[code];
+    if (!f.items || !f.items.length) return;
+    f.items.forEach(function(item) {
+      if (item.VALUE && item.VALUE.toLowerCase().indexOf("реферальн") !== -1) {
+        Logger.log("✅ НАЙДЕНО! Код поля: " + code + " | ID значения: " + item.ID + " | Значение: " + item.VALUE);
+        found = true;
+      }
+    });
+  });
+
+  if (!found) Logger.log("❌ 'реферальная программа' не найдено. Проверьте название в Битриксе.");
 }
 
 // ============================================================
