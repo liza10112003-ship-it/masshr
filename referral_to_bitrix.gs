@@ -177,25 +177,28 @@ function mapFields(responses) {
   return result;
 }
 
-// Находит enum ID по английскому названию ГЕО
+// Статическая карта: английское название страны → enum ID в поле ГЕО Битрикса
+var GEO_ENUM_MAP = {
+  "albania": 3261, "andorra": 3263, "armenia": 3265, "austria": 3267,
+  "azerbaijan": 3269, "belarus": 3271, "belgium": 3273,
+  "bosnia and herzegovina": 3275, "cyprus": 3277, "czech republic": 3279,
+  "denmark": 3281, "estonia": 3283, "finland": 3285, "france": 3287,
+  "georgia": 3289, "germany": 3291, "greece": 3293, "hungary": 3295,
+  "iceland": 3297, "ireland": 3299, "italy": 3301, "kazakhstan": 3303,
+  "kosovo": 3305, "latvia": 3307, "liechtenstein": 3309, "lithuania": 3311,
+  "luxembourg": 3313, "malta": 3315, "moldova": 3317, "monaco": 3319,
+  "montenegro": 3321, "netherlands": 3323, "north macedonia": 3325,
+  "norway": 3327, "poland": 3329, "portugal": 3331, "romania": 3333,
+  "san marino": 3335, "serbia": 3337, "slovakia": 3339, "slovenia": 3341,
+  "spain": 3343, "sweden": 3345, "switzerland": 3347, "turkey": 3349,
+  "ukraine": 3351, "united kingdom": 3353, "vatican city": 3355,
+  "russia": 3357, "croatia": 3359, "bulgaria": 3361
+};
+
+// Возвращает enum ID по английскому названию ГЕО
 function getGeoEnumId(geoEn) {
-  if (!GEO_FIELD_CODE || !geoEn) return null;
-  try {
-    var url  = BITRIX_WEBHOOK + "crm.deal.fields.json";
-    var resp = UrlFetchApp.fetch(url, { method: "get", muteHttpExceptions: true });
-    var fields = JSON.parse(resp.getContentText());
-    var field  = fields.result && fields.result[GEO_FIELD_CODE];
-    if (field && field.items) {
-      for (var i = 0; i < field.items.length; i++) {
-        if (field.items[i].VALUE.toLowerCase() === geoEn.toLowerCase()) {
-          return field.items[i].ID;
-        }
-      }
-    }
-  } catch (e) {
-    Logger.log("Ошибка получения ГЕО enum: " + e);
-  }
-  return null;
+  if (!geoEn) return null;
+  return GEO_ENUM_MAP[geoEn.toLowerCase().trim()] || null;
 }
 
 function createDeal(title, geoEnumId) {
