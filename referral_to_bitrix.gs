@@ -307,6 +307,35 @@ function findDealFields() {
 }
 
 // ============================================================
+// Запустите один раз → покажет все страны и их ID в поле ГЕО Битрикса
+// ============================================================
+function findGeoEnumIds() {
+  var url  = BITRIX_WEBHOOK + "crm.userfield.get.json?id=" + GEO_FIELD_CODE;
+  var resp = UrlFetchApp.fetch(url, { method: "get", muteHttpExceptions: true });
+  var data = JSON.parse(resp.getContentText());
+
+  if (!data.result || !data.result.LIST) {
+    // Попробуем через crm.deal.fields
+    var url2  = BITRIX_WEBHOOK + "crm.deal.fields.json";
+    var resp2 = UrlFetchApp.fetch(url2, { method: "get", muteHttpExceptions: true });
+    var data2 = JSON.parse(resp2.getContentText());
+    var field = data2.result && data2.result[GEO_FIELD_CODE];
+    if (field && field.items) {
+      field.items.forEach(function(item) {
+        Logger.log("ID: " + item.ID + " | " + item.VALUE);
+      });
+    } else {
+      Logger.log("Не удалось получить: " + JSON.stringify(data));
+    }
+    return;
+  }
+
+  data.result.LIST.forEach(function(item) {
+    Logger.log("ID: " + item.ID + " | " + item.VALUE);
+  });
+}
+
+// ============================================================
 // Проверяет маппинг всех ГЕО значений из формы → Битрикс (без создания карточек)
 // ============================================================
 function testAllGeos() {
@@ -386,10 +415,11 @@ function testIntegration() {
     if (mapped[label]) commentParts.push(label + "\n" + mapped[label]);
   });
 
-  var geoEnumId = getGeoEnumId(geo);
-  Logger.log("GEO enum ID: " + geoEnumId);
+  var geoEn     = geo ? (GEO_TRANSLATIONS[geo.toLowerCase().trim()] || geo) : "";
+  var geoEnumId = getGeoEnumId(geoEn);
+  Logger.log("GEO: " + geo + " → " + geoEn + " → enum ID: " + geoEnumId);
 
-  var dealId = createDeal("[REFERRAL] " + fio + " - " + geo + " [TEST]", geoEnumId);
+  var dealId = createDeal("[REFERRAL] " + fio + " - " + geoEn + " [TEST]", geoEnumId);
   if (dealId) addTimelineComment(dealId, commentParts.join("\n\n"));
   Logger.log("Test Deal ID: " + dealId);
 }
