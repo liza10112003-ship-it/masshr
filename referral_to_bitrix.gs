@@ -13,8 +13,8 @@ var BITRIX_WEBHOOK = "https://bitrix.ferraraoceanllp.com/rest/45/kpfsu7g1dgfzpoj
 var CATEGORY_ID    = 7;
 
 var GEO_FIELD_CODE      = "UF_CRM_1769653536652";
-var SOURCE_FIELD_CODE   = "";  // ← заполните после запуска findSourceField()
-var SOURCE_REFERRAL_ID  = "";  // ← заполните после запуска findSourceField()
+var SOURCE_FIELD_CODE   = "UF_CRM_1727275868670";
+var SOURCE_REFERRAL_ID  = "3039";
 
 // Маппинг: ключевое слово из заголовка столбца → русское название для комментария
 var FIELD_MAP = [
